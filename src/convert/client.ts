@@ -24,7 +24,7 @@ function buildConfig(project: ProjectConfig): ConvertConfig {
   return {
     sdkKey: project.sdkKey,
     ...(project.sdkKeySecret ? { sdkKeySecret: project.sdkKeySecret } : {}),
-    environment: (process.env.CONVERT_ENVIRONMENT ?? 'staging') as 'staging' | 'live',
+    environment: (process.env.CONVERT_ENVIRONMENT ?? 'production') as string,
     dataRefreshInterval: Number(process.env.CONVERT_DATA_REFRESH_INTERVAL ?? 300_000),
     logger: {
       logLevel: process.env.NODE_ENV === 'development' ? 3 : 1,

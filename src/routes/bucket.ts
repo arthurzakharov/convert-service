@@ -20,7 +20,8 @@ const router = Router();
  *   {
  *     projectKey: 'passexperten' | 'bussgeldcheck',
  *     visitorId: string,
- *     visitorProperties?: Record<string, unknown>   // audience attributes
+ *     visitorProperties?: Record<string, unknown>    // audience/segment attributes
+ *     locationProperties?: Record<string, unknown>   // URL/location targeting, e.g. { url: 'https://...' }
  *   }
  *
  * Response 200:
@@ -36,10 +37,11 @@ const router = Router();
  *   }
  */
 router.post('/', async (req: Request, res: Response) => {
-  const { projectKey, visitorId, visitorProperties = {} } = req.body as {
+  const { projectKey, visitorId, visitorProperties = {}, locationProperties } = req.body as {
     projectKey?: string;
     visitorId?: string;
     visitorProperties?: Record<string, unknown>;
+    locationProperties?: Record<string, unknown>;
   };
 
   if (!projectKey || !visitorId) {
@@ -60,7 +62,9 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Failed to create visitor context' });
     }
 
-    const bucketedExperiences = context.runExperiences();
+    const bucketedExperiences = context.runExperiences(
+      locationProperties ? { locationProperties } : undefined,
+    );
 
     // Filter out RuleError / BucketingError entries — only keep successful bucketing results
     const variations = (bucketedExperiences as unknown[])
