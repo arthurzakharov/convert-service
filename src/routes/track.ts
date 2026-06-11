@@ -52,6 +52,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     context.trackConversion(goalKey, attributes);
+    console.log('[track] fired:', { projectKey, visitorId, goalKey, attributes });
     return res.json({ success: true });
   } catch (err) {
     console.error('[track] Error tracking conversion:', err);
