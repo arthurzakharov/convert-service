@@ -38,11 +38,12 @@ const router = Router();
  *   }
  */
 router.post('/', async (req: Request, res: Response) => {
-  const { projectKey, visitorId, visitorProperties = {}, locationProperties, campaign } = req.body as {
+  const { projectKey, visitorId, visitorProperties = {}, locationProperties, pageUrl, campaign } = req.body as {
     projectKey?: string;
     visitorId?: string;
     visitorProperties?: Record<string, unknown>;
     locationProperties?: Record<string, unknown>;
+    pageUrl?: string;
     campaign?: string;
   };
 
@@ -64,7 +65,7 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Failed to create visitor context' });
     }
 
-    const segments = buildSegments(req, campaign);
+    const segments = buildSegments(req, pageUrl, campaign);
     (context as any).setDefaultSegments(segments);
 
     console.log('[bucket] request:', { projectKey, visitorId, locationProperties, segments });
