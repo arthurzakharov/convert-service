@@ -5,6 +5,14 @@
     "lib": ["ES2020"],
     "outDir": "dist",
     "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@app":           ["src/app"],
+      "@convert/*":     ["src/convert/*"],
+      "@middleware/*":  ["src/middleware/*"],
+      "@routes/*":      ["src/routes/*"],
+      "@utils/*":       ["src/utils/*"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

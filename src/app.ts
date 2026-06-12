@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import bucketRouter from './routes/bucket';
-import trackRouter from './routes/track';
-import healthRouter from './routes/health';
+import bucketRouter from '@routes/bucket';
+import trackRouter from '@routes/track';
+import healthRouter from '@routes/health';
 
 const app = express();
 

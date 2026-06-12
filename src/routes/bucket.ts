@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { BucketedVariation } from '@convertcom/js-sdk';
-import { getClient } from '../convert/client';
-import type { ProjectKey } from '../convert/client';
-import { buildSegments } from '../utils/segments';
+import { getClient } from '@convert/client';
+import type { ProjectKey } from '@convert/client';
+import { buildSegments } from '@utils/segments';
 
 function isBucketedVariation(exp: unknown): exp is BucketedVariation {
   return typeof exp === 'object' && exp !== null && 'experienceKey' in exp && 'key' in exp;

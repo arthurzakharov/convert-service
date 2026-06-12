@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { ConversionAttributes } from '@convertcom/js-sdk';
-import { getClient } from '../convert/client';
-import type { ProjectKey } from '../convert/client';
+import { getClient } from '@convert/client';
+import type { ProjectKey } from '@convert/client';
 
 const router = Router();
 

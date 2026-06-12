@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import app from './app';
-import { initAllClients } from './convert/client';
+import app from '@app';
+import { initAllClients } from '@convert/client';
 
 const PORT = Number(process.env.PORT ?? 3100);
 
