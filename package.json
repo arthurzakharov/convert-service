@@ -1,6 +1,6 @@
 {
   "name": "@arthurzakharov/convert-service",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Server-side Convert.com SDK proxy service",
   "repository": {
     "url": "https://github.com/arthurzakharov/convert-service"
