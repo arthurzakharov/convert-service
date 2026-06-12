@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import type { BucketedVariation } from '@convertcom/js-sdk';
 import { getClient } from '../convert/client';
 import type { ProjectKey } from '../convert/client';
+import { buildSegments } from '../utils/segments';
 
 function isBucketedVariation(exp: unknown): exp is BucketedVariation {
   return typeof exp === 'object' && exp !== null && 'experienceKey' in exp && 'key' in exp;
@@ -37,11 +38,12 @@ const router = Router();
  *   }
  */
 router.post('/', async (req: Request, res: Response) => {
-  const { projectKey, visitorId, visitorProperties = {}, locationProperties } = req.body as {
+  const { projectKey, visitorId, visitorProperties = {}, locationProperties, campaign } = req.body as {
     projectKey?: string;
     visitorId?: string;
     visitorProperties?: Record<string, unknown>;
     locationProperties?: Record<string, unknown>;
+    campaign?: string;
   };
 
   if (!projectKey || !visitorId) {
@@ -62,7 +64,10 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Failed to create visitor context' });
     }
 
-    console.log('[bucket] request:', { projectKey, visitorId, locationProperties });
+    const segments = buildSegments(req, campaign);
+    (context as any).setDefaultSegments(segments);
+
+    console.log('[bucket] request:', { projectKey, visitorId, locationProperties, segments });
     const bucketedExperiences = context.runExperiences(
       locationProperties ? { locationProperties } : undefined,
     );
