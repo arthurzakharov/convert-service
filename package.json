@@ -1,5 +1,5 @@
 {
-  "name": "convert-service",
+  "name": "@arthurzakharov/convert-service",
   "version": "1.0.0",
   "description": "Server-side Convert.com SDK proxy service",
   "main": "dist/index.js",
