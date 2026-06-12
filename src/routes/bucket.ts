@@ -62,6 +62,7 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Failed to create visitor context' });
     }
 
+    console.log('[bucket] request:', { projectKey, visitorId, locationProperties });
     const bucketedExperiences = context.runExperiences(
       locationProperties ? { locationProperties } : undefined,
     );
