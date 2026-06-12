@@ -5,6 +5,7 @@ import { createLogger } from '@utils/logger';
 const log = createLogger('convert');
 
 export type ProjectKey = 'passexperten' | 'bussgeldcheck';
+export const PROJECT_KEYS: ProjectKey[] = ['passexperten', 'bussgeldcheck'];
 
 interface ProjectConfig {
   sdkKey: string;
@@ -38,6 +39,9 @@ function buildConfig(project: ProjectConfig): ConvertConfig {
 export async function getClient(projectKey: ProjectKey): Promise<ConvertInterface> {
   if (!clients.has(projectKey)) {
     const config = PROJECT_CONFIGS[projectKey];
+    if (!config) {
+      throw new Error(`Unknown project: ${projectKey}`);
+    }
     if (!config.sdkKey) {
       throw new Error(`No SDK key configured for project: ${projectKey}`);
     }
@@ -52,9 +56,8 @@ export async function getClient(projectKey: ProjectKey): Promise<ConvertInterfac
 }
 
 export async function initAllClients(): Promise<void> {
-  const projects = Object.keys(PROJECT_CONFIGS) as ProjectKey[];
   await Promise.allSettled(
-    projects.map(async (key) => {
+    PROJECT_KEYS.map(async (key) => {
       if (!PROJECT_CONFIGS[key].sdkKey) {
         log.warn(`skipping ${key}: CONVERT_SDK_KEY_${key.toUpperCase()} not set`);
         return;

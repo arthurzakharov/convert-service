@@ -9,6 +9,7 @@ const log = createLogger('segments');
 type ConvertBrowser = 'IE' | 'CH' | 'FF' | 'OP' | 'SF' | 'OTH';
 type ConvertDevice = 'ALLPH' | 'IPH' | 'OTHPH' | 'ALLTAB' | 'IPAD' | 'OTHTAB' | 'DESK' | 'OTHDEV';
 type ConvertSource = 'campaign' | 'search' | 'referral' | 'direct' | 'ai_tool';
+type ConvertVisitorType = 'new' | 'returning';
 
 export interface VisitorSegments {
   browser?: ConvertBrowser;
@@ -16,7 +17,7 @@ export interface VisitorSegments {
   country?: string;
   source?: ConvertSource;
   campaign?: string;
-  visitorType?: string;
+  visitorType?: ConvertVisitorType;
 }
 
 /**

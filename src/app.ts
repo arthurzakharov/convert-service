@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import bucketRouter from '@routes/bucket';
+import experiencesRouter from '@routes/experiences';
+import featuresRouter from '@routes/features';
 import trackRouter from '@routes/track';
 import healthRouter from '@routes/health';
 
@@ -26,6 +28,8 @@ app.use(express.json());
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/health', healthRouter);
 app.use('/bucket', bucketRouter);
+app.use('/experiences', experiencesRouter);
+app.use('/features', featuresRouter);
 app.use('/track', trackRouter);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────

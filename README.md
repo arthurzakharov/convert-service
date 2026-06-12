@@ -1,6 +1,8 @@
 # convert-service
 
-Server-side proxy for the [Convert.com](https://www.convert.com/) FullStack SDK. Exposes a small HTTP API so frontend apps can bucket visitors and track conversions without embedding SDK keys in the browser.
+Server-side proxy for the [Convert.com](https://www.convert.com/) FullStack SDK. Exposes a small HTTP API so frontend apps can bucket visitors, read FullStack configuration, run feature flags, and track conversions without embedding SDK keys in the browser.
+
+The bucketing endpoints follow Convert's documented FullStack flow for [experiences and variations](https://docs.developers.convert.com/docs/experiences-and-variations): create a visitor context, evaluate targeting/location rules, then return the selected variation or feature state.
 
 ## Endpoints
 
@@ -8,6 +10,19 @@ Server-side proxy for the [Convert.com](https://www.convert.com/) FullStack SDK.
 |--------|------|-------------|
 | `GET` | `/health` | Returns service version and commit hash |
 | `POST` | `/bucket` | Run all active experiences for a visitor |
+| `GET` | `/experiences` | List configured experiences for a project |
+| `GET` | `/experiences/:experienceKey` | Read one experience by key |
+| `GET` | `/experiences/by-id/:experienceId` | Read one experience by ID |
+| `GET` | `/experiences/:experienceKey/variations/:variationKey` | Read one variation by experience/variation key |
+| `GET` | `/experiences/by-id/:experienceId/variations/:variationId` | Read one variation by experience/variation ID |
+| `POST` | `/experiences/run` | Run one experience by key for a visitor |
+| `POST` | `/experiences/run-by-id` | Run one experience by ID for a visitor |
+| `GET` | `/features` | List configured FullStack features for a project |
+| `GET` | `/features/:featureKey` | Read one feature by key |
+| `GET` | `/features/by-id/:featureId` | Read one feature by ID |
+| `POST` | `/features/run-all` | Run all feature flags for a visitor |
+| `POST` | `/features/run` | Run one feature flag by key for a visitor |
+| `POST` | `/features/run-by-id` | Run one feature flag by ID for a visitor |
 | `POST` | `/track` | Track a conversion goal |
 
 ### `GET /health`
@@ -43,6 +58,224 @@ Server-side proxy for the [Convert.com](https://www.convert.com/) FullStack SDK.
       "changes": []
     }
   ]
+}
+```
+
+### Shared bucketing fields
+
+`POST /bucket`, `/experiences/run`, `/experiences/run-by-id`, `/features/run-all`, `/features/run`, and `/features/run-by-id` accept these Convert bucketing fields:
+
+| Field | Required | Description |
+|---|---|---|
+| `projectKey` | Yes | Supported project key, for example `passexperten` |
+| `visitorId` | Yes | Stable visitor identifier |
+| `visitorProperties` | No | Audience/segment targeting properties |
+| `locationProperties` | No | Location rule matching properties |
+| `pageUrl` | No | Page URL used while deriving default segments |
+| `campaign` | No | Campaign value used while deriving default segments |
+| `updateVisitorProperties` | No | Whether to update in-memory visitor properties |
+| `forceVariationId` | No | Force a specific variation ID when running experiences |
+| `enableTracking` | No | Whether Convert should track the bucketing event immediately |
+| `environment` | No | Override Convert environment for this decision |
+| `typeCasting` | No | Feature variable type casting flag |
+| `experienceKeys` | No | Limit feature evaluation to specific experience keys |
+
+### `GET /experiences`
+
+```http
+GET /experiences?projectKey=passexperten
+```
+
+```json
+{
+  "experiences": [
+    {
+      "id": "100001",
+      "key": "headline-test",
+      "name": "Headline Test",
+      "status": "active",
+      "variations": []
+    }
+  ]
+}
+```
+
+### `GET /experiences/:experienceKey`
+
+```http
+GET /experiences/headline-test?projectKey=passexperten
+```
+
+```json
+{
+  "experience": {
+    "id": "100001",
+    "key": "headline-test",
+    "name": "Headline Test",
+    "variations": []
+  }
+}
+```
+
+The ID-based equivalent is:
+
+```http
+GET /experiences/by-id/100001?projectKey=passexperten
+```
+
+### `GET /experiences/:experienceKey/variations/:variationKey`
+
+```http
+GET /experiences/headline-test/variations/variation-a?projectKey=passexperten
+```
+
+```json
+{
+  "variation": {
+    "id": "200001",
+    "key": "variation-a",
+    "name": "Variation A",
+    "changes": []
+  }
+}
+```
+
+The ID-based equivalent is:
+
+```http
+GET /experiences/by-id/100001/variations/200001?projectKey=passexperten
+```
+
+### `POST /experiences/run`
+
+```json
+// Request
+{
+  "projectKey": "passexperten",
+  "visitorId": "user-unique-id",
+  "experienceKey": "headline-test",
+  "visitorProperties": { "country": "DE" },
+  "locationProperties": { "url": "https://www.passexperten.de/" }
+}
+
+// Response
+{
+  "visitorId": "user-unique-id",
+  "variation": {
+    "id": "200001",
+    "experienceId": "100001",
+    "experienceKey": "headline-test",
+    "experienceName": "Headline Test",
+    "variationKey": "variation-a",
+    "variationName": "Variation A",
+    "status": "running",
+    "bucketingAllocation": 5000,
+    "changes": []
+  }
+}
+```
+
+The ID-based request uses `experienceId`:
+
+```json
+{
+  "projectKey": "passexperten",
+  "visitorId": "user-unique-id",
+  "experienceId": "100001"
+}
+```
+
+### `GET /features`
+
+```http
+GET /features?projectKey=passexperten
+```
+
+```json
+{
+  "features": [
+    {
+      "id": "300001",
+      "key": "checkout-flow",
+      "name": "Checkout Flow",
+      "variables": [
+        { "key": "enabled", "type": "boolean" }
+      ]
+    }
+  ]
+}
+```
+
+### `POST /features/run-all`
+
+```json
+// Request
+{
+  "projectKey": "passexperten",
+  "visitorId": "user-unique-id",
+  "visitorProperties": { "country": "DE" }
+}
+
+// Response
+{
+  "visitorId": "user-unique-id",
+  "features": [
+    {
+      "experienceId": "100001",
+      "experienceKey": "headline-test",
+      "experienceName": "Headline Test",
+      "id": "300001",
+      "key": "checkout-flow",
+      "name": "Checkout Flow",
+      "status": "enabled",
+      "variables": { "enabled": true }
+    }
+  ]
+}
+```
+
+### `POST /features/run`
+
+```json
+// Request
+{
+  "projectKey": "passexperten",
+  "visitorId": "user-unique-id",
+  "featureKey": "checkout-flow",
+  "experienceKeys": ["headline-test"]
+}
+
+// Response
+{
+  "visitorId": "user-unique-id",
+  "feature": {
+    "experienceId": "100001",
+    "experienceKey": "headline-test",
+    "id": "300001",
+    "key": "checkout-flow",
+    "status": "enabled",
+    "variables": { "enabled": true }
+  },
+  "features": [
+    {
+      "experienceId": "100001",
+      "experienceKey": "headline-test",
+      "id": "300001",
+      "key": "checkout-flow",
+      "status": "enabled",
+      "variables": { "enabled": true }
+    }
+  ]
+}
+```
+
+The ID-based request uses `featureId`:
+
+```json
+{
+  "projectKey": "passexperten",
+  "visitorId": "user-unique-id",
+  "featureId": "300001"
 }
 ```
 
