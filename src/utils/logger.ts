@@ -23,8 +23,10 @@ const bg = {
   green:  '\x1b[42m',
 } as const;
 
-// Respect the NO_COLOR convention; also skip ANSI in non-TTY pipes
-const USE_COLOR = process.stdout.isTTY && !process.env['NO_COLOR'];
+// Always use color unless the NO_COLOR convention is set.
+// Railway (and most modern log viewers) renders ANSI fine even though
+// process.stdout.isTTY is false in piped/containerised environments.
+const USE_COLOR = !process.env['NO_COLOR'];
 
 const paint = (code: string, text: string) =>
   USE_COLOR ? `${code}${text}${R}` : text;
