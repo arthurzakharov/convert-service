@@ -315,6 +315,81 @@ npm install
 npm run dev        # ts-node-dev with hot reload on port 3100
 ```
 
+## Frontend npm helper
+
+This package also exposes a browser-safe helper for frontend applications. Import it from the `client` subpath so the frontend bundle does not import the Express service entrypoint:
+
+```ts
+import { createConvertServiceClient } from 'convert-service/client';
+
+const convert = createConvertServiceClient({
+  baseUrl: 'https://convert-service.example.com',
+  projectKey: 'passexperten',
+});
+
+const { variation } = await convert.runExperience({
+  experienceKey: 'headline-test',
+  visitorProperties: { country: 'DE' },
+  locationProperties: { url: window.location.href },
+});
+
+if (variation?.variationKey === 'variation-a') {
+  // render variation-specific frontend behavior
+}
+```
+
+The helper manages a stable visitor ID in a first-party cookie named `convert_visitor_id` by default. You can override or seed it when needed:
+
+```ts
+const convert = createConvertServiceClient({
+  baseUrl: 'https://convert-service.example.com',
+  projectKey: 'bussgeldcheck',
+  visitorCookieName: 'bc_convert_vid',
+  visitorCookieMaxAgeDays: 180,
+  defaultVisitorProperties: { app: 'bussgeldcheck-web' },
+});
+
+convert.setVisitorId(currentUser.id);
+```
+
+Available helper methods:
+
+| Method | Service endpoint |
+|---|---|
+| `health()` | `GET /health` |
+| `bucket()` | `POST /bucket` |
+| `listExperiences()` | `GET /experiences` |
+| `getExperienceByKey()` | `GET /experiences/:experienceKey` |
+| `getExperienceById()` | `GET /experiences/by-id/:experienceId` |
+| `getVariationByKey()` | `GET /experiences/:experienceKey/variations/:variationKey` |
+| `getVariationById()` | `GET /experiences/by-id/:experienceId/variations/:variationId` |
+| `runExperience()` | `POST /experiences/run` |
+| `runExperienceById()` | `POST /experiences/run-by-id` |
+| `listFeatures()` | `GET /features` |
+| `getFeatureByKey()` | `GET /features/:featureKey` |
+| `getFeatureById()` | `GET /features/by-id/:featureId` |
+| `runFeatures()` | `POST /features/run-all` |
+| `runFeature()` | `POST /features/run` |
+| `runFeatureById()` | `POST /features/run-by-id` |
+| `trackConversion()` | `POST /track` |
+
+Endpoint contracts are exported from `convert-service/contracts`:
+
+```ts
+import type {
+  ConvertApiEndpoints,
+  EndpointRequest,
+  EndpointResponse,
+  RunFeatureResponse,
+} from 'convert-service/contracts';
+
+type RunFeatureRequest = EndpointRequest<'POST /features/run'>;
+type BucketResponse = EndpointResponse<'POST /bucket'>;
+type AllEndpoints = keyof ConvertApiEndpoints;
+```
+
+Use these types in frontend wrappers, tests, or mocks when you need exact request/response compatibility with this service.
+
 ## Environment variables
 
 | Variable | Required | Description |

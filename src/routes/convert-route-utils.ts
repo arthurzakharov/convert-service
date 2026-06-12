@@ -10,23 +10,10 @@ import type {
   ExperienceVariationConfig,
 } from '@convertcom/js-sdk';
 import { getClient } from '@convert/client';
-import type { ProjectKey } from '@convert/client';
 import { buildSegments } from '@utils/segments';
+import type { ProjectKey, SerializedFeature, SerializedVariation, SharedBucketingRequest } from '../contracts';
 
-export interface BucketingBody {
-  projectKey?: string;
-  visitorId?: string;
-  visitorProperties?: Record<string, unknown>;
-  locationProperties?: Record<string, unknown>;
-  pageUrl?: string;
-  campaign?: string;
-  updateVisitorProperties?: boolean;
-  forceVariationId?: string;
-  enableTracking?: boolean;
-  environment?: string;
-  typeCasting?: boolean;
-  experienceKeys?: string[];
-}
+export type BucketingBody = Partial<SharedBucketingRequest>;
 
 export async function resolveClient(
   projectKey: string | undefined,
@@ -142,7 +129,7 @@ export function isBucketedFeature(result: unknown): result is BucketedFeature {
   return typeof result === 'object' && result !== null && ('status' in result || 'variables' in result);
 }
 
-export function serializeVariation(variation: BucketedVariation) {
+export function serializeVariation(variation: BucketedVariation): SerializedVariation {
   return {
     id: variation.id,
     experienceId: variation.experienceId,
@@ -156,7 +143,7 @@ export function serializeVariation(variation: BucketedVariation) {
   };
 }
 
-export function serializeFeature(feature: BucketedFeature) {
+export function serializeFeature(feature: BucketedFeature): SerializedFeature {
   return {
     experienceId: feature.experienceId,
     experienceKey: feature.experienceKey,

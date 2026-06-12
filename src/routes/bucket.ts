@@ -5,6 +5,7 @@ import { getClient } from '@convert/client';
 import type { ProjectKey } from '@convert/client';
 import { buildSegments } from '@utils/segments';
 import { createLogger } from '@utils/logger';
+import type { BucketRequest, BucketResponse } from '../contracts';
 
 const log = createLogger('bucket');
 
@@ -15,14 +16,8 @@ function isBucketedVariation(exp: unknown): exp is BucketedVariation {
 const router = Router();
 
 router.post('/', async (req: Request, res: Response) => {
-  const { projectKey, visitorId, visitorProperties = {}, locationProperties, pageUrl, campaign } = req.body as {
-    projectKey?: string;
-    visitorId?: string;
-    visitorProperties?: Record<string, unknown>;
-    locationProperties?: Record<string, unknown>;
-    pageUrl?: string;
-    campaign?: string;
-  };
+  const { projectKey, visitorId, visitorProperties = {}, locationProperties, pageUrl, campaign } =
+    req.body as Partial<BucketRequest>;
 
   if (!projectKey || !visitorId) {
     return res.status(400).json({ error: 'projectKey and visitorId are required' });
@@ -60,7 +55,8 @@ router.post('/', async (req: Request, res: Response) => {
         changes: (exp as any).changes ?? [],
       }));
 
-    return res.json({ visitorId, variations });
+    const response: BucketResponse = { visitorId, variations };
+    return res.json(response);
   } catch (err) {
     log.error('error running experiences', err);
     return res.status(500).json({ error: 'Failed to bucket visitor' });

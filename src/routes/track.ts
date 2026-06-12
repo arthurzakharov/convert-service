@@ -1,20 +1,15 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import type { ConversionAttributes } from '@convertcom/js-sdk';
 import { getClient } from '@convert/client';
 import type { ProjectKey } from '@convert/client';
 import { createLogger } from '@utils/logger';
+import type { TrackConversionRequest, TrackConversionResponse } from '../contracts';
 
 const log = createLogger('track');
 const router = Router();
 
 router.post('/', async (req: Request, res: Response) => {
-  const { projectKey, visitorId, goalKey, attributes } = req.body as {
-    projectKey?: string;
-    visitorId?: string;
-    goalKey?: string;
-    attributes?: ConversionAttributes;
-  };
+  const { projectKey, visitorId, goalKey, attributes } = req.body as Partial<TrackConversionRequest>;
 
   if (!projectKey || !visitorId || !goalKey) {
     return res.status(400).json({ error: 'projectKey, visitorId and goalKey are required' });
@@ -36,7 +31,8 @@ router.post('/', async (req: Request, res: Response) => {
 
     context.trackConversion(goalKey, attributes);
     log.info('conversion fired', { projectKey, visitorId, goalKey, attributes });
-    return res.json({ success: true });
+    const response: TrackConversionResponse = { success: true };
+    return res.json(response);
   } catch (err) {
     log.error('error tracking conversion', err);
     return res.status(500).json({ error: 'Failed to track conversion' });

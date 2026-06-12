@@ -1,10 +1,11 @@
 import ConvertSDK from '@convertcom/js-sdk';
 import type { ConvertInterface, ConvertConfig } from '@convertcom/js-sdk';
 import { createLogger } from '@utils/logger';
+import type { ProjectKey } from '../contracts';
 
 const log = createLogger('convert');
 
-export type ProjectKey = 'passexperten' | 'bussgeldcheck';
+export type { ProjectKey } from '../contracts';
 export const PROJECT_KEYS: ProjectKey[] = ['passexperten', 'bussgeldcheck'];
 
 interface ProjectConfig {
