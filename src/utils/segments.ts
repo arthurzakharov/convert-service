@@ -1,6 +1,9 @@
 import { UAParser } from 'ua-parser-js';
 import geoip from 'geoip-lite';
 import type { Request } from 'express';
+import { createLogger } from '@utils/logger';
+
+const log = createLogger('segments');
 
 // Convert API segment types (from @convertcom/js-sdk-event VisitorSegments)
 type ConvertBrowser = 'IE' | 'CH' | 'FF' | 'OP' | 'SF' | 'OTH';
@@ -106,7 +109,7 @@ export function buildSegments(
 
   if (campaign) segments.campaign = campaign;
 
-  console.log('[segments] built:', { browser, devices, country, source, campaign });
+  log.debug('built', { browser, devices, country, source, campaign });
 
   return segments;
 }

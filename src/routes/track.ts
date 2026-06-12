@@ -3,7 +3,9 @@ import type { Request, Response } from 'express';
 import type { ConversionAttributes } from '@convertcom/js-sdk';
 import { getClient } from '@convert/client';
 import type { ProjectKey } from '@convert/client';
+import { createLogger } from '@utils/logger';
 
+const log = createLogger('track');
 const router = Router();
 
 router.post('/', async (req: Request, res: Response) => {
@@ -33,10 +35,10 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     context.trackConversion(goalKey, attributes);
-    console.log('[track] fired:', { projectKey, visitorId, goalKey, attributes });
+    log.info('conversion fired', { projectKey, visitorId, goalKey, attributes });
     return res.json({ success: true });
   } catch (err) {
-    console.error('[track] Error tracking conversion:', err);
+    log.error('error tracking conversion', err);
     return res.status(500).json({ error: 'Failed to track conversion' });
   }
 });

@@ -4,6 +4,9 @@ import type { BucketedVariation } from '@convertcom/js-sdk';
 import { getClient } from '@convert/client';
 import type { ProjectKey } from '@convert/client';
 import { buildSegments } from '@utils/segments';
+import { createLogger } from '@utils/logger';
+
+const log = createLogger('bucket');
 
 function isBucketedVariation(exp: unknown): exp is BucketedVariation {
   return typeof exp === 'object' && exp !== null && 'experienceKey' in exp && 'key' in exp;
@@ -42,7 +45,7 @@ router.post('/', async (req: Request, res: Response) => {
     const segments = buildSegments(req, pageUrl, campaign);
     (context as any).setDefaultSegments(segments);
 
-    console.log('[bucket] request:', { projectKey, visitorId, locationProperties, segments });
+    log.info('request', { projectKey, visitorId, locationProperties, segments });
     const bucketedExperiences = context.runExperiences(
       locationProperties ? { locationProperties } : undefined,
     );
@@ -59,7 +62,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     return res.json({ visitorId, variations });
   } catch (err) {
-    console.error('[bucket] Error running experiences:', err);
+    log.error('error running experiences', err);
     return res.status(500).json({ error: 'Failed to bucket visitor' });
   }
 });

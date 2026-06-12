@@ -1,5 +1,8 @@
 import ConvertSDK from '@convertcom/js-sdk';
 import type { ConvertInterface, ConvertConfig } from '@convertcom/js-sdk';
+import { createLogger } from '@utils/logger';
+
+const log = createLogger('convert');
 
 export type ProjectKey = 'passexperten' | 'bussgeldcheck';
 
@@ -53,11 +56,11 @@ export async function initAllClients(): Promise<void> {
   await Promise.allSettled(
     projects.map(async (key) => {
       if (!PROJECT_CONFIGS[key].sdkKey) {
-        console.warn(`[convert] Skipping ${key}: CONVERT_SDK_KEY_${key.toUpperCase()} not set`);
+        log.warn(`skipping ${key}: CONVERT_SDK_KEY_${key.toUpperCase()} not set`);
         return;
       }
       await getClient(key);
-      console.log(`[convert] SDK ready for project: ${key}`);
+      log.info('SDK ready', { project: key });
     }),
   );
 }
