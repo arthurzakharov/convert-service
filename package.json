@@ -23,7 +23,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc && tsc-alias",
+    "build": "tsc && tsc-alias && node scripts/build-report.js",
     "start": "node dist/index.js",
     "dev": "ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/index.ts",
     "typecheck": "tsc --noEmit"
