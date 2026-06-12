@@ -43,7 +43,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "geoip-lite": "^1.4.10",
+    "geoip-lite": "^2.0.2",
     "ua-parser-js": "^2.0.10"
   },
   "devDependencies": {

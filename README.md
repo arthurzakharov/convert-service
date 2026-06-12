@@ -423,6 +423,6 @@ The service deploys to [Railway](https://railway.app) automatically via GitHub A
 
 ## Tech stack
 
-- Node 20 / TypeScript
+- Node 24 / TypeScript
 - Express
 - [@convertcom/js-sdk](https://www.npmjs.com/package/@convertcom/js-sdk)
