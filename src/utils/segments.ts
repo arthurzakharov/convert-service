@@ -2,41 +2,57 @@ import { UAParser } from 'ua-parser-js';
 import geoip from 'geoip-lite';
 import type { Request } from 'express';
 
+// Convert API segment types (from @convertcom/js-sdk-event VisitorSegments)
+type ConvertBrowser = 'IE' | 'CH' | 'FF' | 'OP' | 'SF' | 'OTH';
+type ConvertDevice = 'ALLPH' | 'IPH' | 'OTHPH' | 'ALLTAB' | 'IPAD' | 'OTHTAB' | 'DESK' | 'OTHDEV';
+type ConvertSource = 'campaign' | 'search' | 'referral' | 'direct' | 'ai_tool';
+
 export interface VisitorSegments {
-  browser?: string;
-  devices?: string;
+  browser?: ConvertBrowser;
+  devices?: ConvertDevice[];
   country?: string;
-  source?: string;
+  source?: ConvertSource;
   campaign?: string;
   visitorType?: string;
 }
 
 /**
- * Normalise UAParser browser name to the values Convert expects.
- * Convert accepts: 'chrome' | 'firefox' | 'safari' | 'edge' | 'ie' | 'opera' | 'other'
+ * Normalise UAParser browser name to Convert's internal browser codes.
+ * Convert API accepts: 'CH' (Chrome) | 'FF' (Firefox) | 'SF' (Safari) |
+ *                      'IE' (IE) | 'OP' (Opera) | 'OTH' (Other)
+ * Note: Edge is not in the enum — maps to 'OTH'.
  * Order matters: check 'edge' before 'chrome' (Edge UA contains "Chrome")
  */
-function normaliseBrowser(name: string | undefined): string {
-  if (!name) return 'other';
+function normaliseBrowser(name: string | undefined): ConvertBrowser {
+  if (!name) return 'OTH';
   const n = name.toLowerCase();
-  if (n.includes('edge')) return 'edge';
-  if (n.includes('chrome') || n.includes('chromium')) return 'chrome';
-  if (n.includes('firefox')) return 'firefox';
-  if (n.includes('safari')) return 'safari';
-  if (n.includes('ie') || n.includes('internet explorer')) return 'ie';
-  if (n.includes('opera')) return 'opera';
-  return 'other';
+  if (n.includes('edge')) return 'OTH';
+  if (n.includes('chrome') || n.includes('chromium')) return 'CH';
+  if (n.includes('firefox')) return 'FF';
+  if (n.includes('safari')) return 'SF';
+  if (n.includes('ie') || n.includes('internet explorer')) return 'IE';
+  if (n.includes('opera')) return 'OP';
+  return 'OTH';
 }
 
 /**
- * Normalise UAParser device type to the values Convert expects.
- * Convert accepts: 'desktop' | 'mobile' | 'tablet'
- * UAParser returns undefined for desktops — treat that as 'desktop'.
+ * Normalise UAParser device type to Convert's internal device codes (array).
+ * Convert API accepts: ['DESK'] | ['ALLPH'] | ['ALLTAB']
+ * UAParser returns undefined for desktops — treat that as 'DESK'.
  */
-function normaliseDevice(type: string | undefined): string {
-  if (type === 'mobile') return 'mobile';
-  if (type === 'tablet') return 'tablet';
-  return 'desktop';
+function normaliseDevice(type: string | undefined): ConvertDevice[] {
+  if (type === 'mobile') return ['ALLPH'];
+  if (type === 'tablet') return ['ALLTAB'];
+  return ['DESK'];
+}
+
+/**
+ * Derive traffic source category from available context.
+ * Convert API accepts: 'campaign' | 'search' | 'referral' | 'direct' | 'ai_tool'
+ */
+function deriveSource(campaign?: string): ConvertSource {
+  if (campaign) return 'campaign';
+  return 'direct';
 }
 
 /**
@@ -52,28 +68,17 @@ function getClientIp(req: Request): string | undefined {
 }
 
 /**
- * Strip query string and hash from a URL string, keep path.
- * e.g. 'https://example.com/testfunnel/?foo=bar' → 'https://example.com/testfunnel/'
- */
-function stripQueryParams(url: string | undefined): string | undefined {
-  if (!url) return undefined;
-  try {
-    const u = new URL(url);
-    return `${u.origin}${u.pathname}`;
-  } catch {
-    return url;
-  }
-}
-
-/**
  * Build Convert default segments from the incoming HTTP request.
  *
  * Auto-detected from headers:  browser, devices, country (geoip from IP)
- * Passed by frontend:          pageUrl (current page), campaign (UTM param)
+ * Passed by frontend:          pageUrl (not used directly), campaign (UTM param)
+ *
+ * Note: Convert's `source` field is a traffic category ('direct' | 'campaign' | ...),
+ * not a URL. If a UTM campaign is present we report 'campaign'; otherwise 'direct'.
  */
 export function buildSegments(
   req: Request,
-  pageUrl?: string,
+  _pageUrl?: string,
   campaign?: string,
 ): VisitorSegments {
   const ua = req.headers['user-agent'];
@@ -95,9 +100,7 @@ export function buildSegments(
 
   const browser = normaliseBrowser(result.browser.name);
   const devices = normaliseDevice(result.device.type);
-
-  // source = current page URL (from frontend) stripped of query params
-  const source = stripQueryParams(pageUrl);
+  const source = deriveSource(campaign);
 
   const segments: VisitorSegments = { browser, devices, country, source };
 
