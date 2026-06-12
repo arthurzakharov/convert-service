@@ -32,18 +32,12 @@ function buildConfig(project: ProjectConfig): ConvertConfig {
   } as ConvertConfig;
 }
 
-/**
- * Return the SDK client for a project, initializing it on first call.
- * Throws if sdkKey is not configured for the project.
- */
 export async function getClient(projectKey: ProjectKey): Promise<ConvertInterface> {
   if (!clients.has(projectKey)) {
     const config = PROJECT_CONFIGS[projectKey];
     if (!config.sdkKey) {
       throw new Error(`No SDK key configured for project: ${projectKey}`);
     }
-
-    // ConvertSDK is typed as CoreInterface but ConvertInterface = CoreInterface
     const sdk = new ConvertSDK(buildConfig(config)) as unknown as ConvertInterface;
     const ready = (sdk as any).onReady() as Promise<void>;
     clients.set(projectKey, sdk);
@@ -54,10 +48,6 @@ export async function getClient(projectKey: ProjectKey): Promise<ConvertInterfac
   return clients.get(projectKey)!;
 }
 
-/**
- * Pre-warm all configured SDK clients at startup.
- * Projects with missing SDK keys are skipped with a warning.
- */
 export async function initAllClients(): Promise<void> {
   const projects = Object.keys(PROJECT_CONFIGS) as ProjectKey[];
   await Promise.allSettled(

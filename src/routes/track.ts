@@ -6,25 +6,6 @@ import type { ProjectKey } from '../convert/client';
 
 const router = Router();
 
-/**
- * POST /track
- *
- * Track a conversion goal for a visitor.
- *
- * Body:
- *   {
- *     projectKey: 'passexperten' | 'bussgeldcheck',
- *     visitorId: string,
- *     goalKey: string,              // must match the goal key in Convert dashboard
- *     attributes?: {
- *       conversionData?: Array<{ key?: string, value?: number | string }>,
- *       ruleData?: Record<string, any>
- *     }
- *   }
- *
- * Response 200:
- *   { success: true }
- */
 router.post('/', async (req: Request, res: Response) => {
   const { projectKey, visitorId, goalKey, attributes } = req.body as {
     projectKey?: string;
