@@ -6,6 +6,7 @@ import type { ProjectKey } from '@convert/client';
 import { buildSegments } from '@utils/segments';
 import { createLogger } from '@utils/logger';
 import type { BucketRequest, BucketResponse } from '../contracts';
+import { parseRequest, sharedBucketingSchema } from './schemas';
 
 const log = createLogger('bucket');
 
@@ -16,12 +17,11 @@ function isBucketedVariation(exp: unknown): exp is BucketedVariation {
 const router = Router();
 
 router.post('/', async (req: Request, res: Response) => {
-  const { projectKey, visitorId, visitorProperties = {}, locationProperties, pageUrl, campaign } =
-    req.body as Partial<BucketRequest>;
+  const body = parseRequest<BucketRequest>(sharedBucketingSchema, req.body, res);
+  if (!body) return;
 
-  if (!projectKey || !visitorId) {
-    return res.status(400).json({ error: 'projectKey and visitorId are required' });
-  }
+  const { projectKey, visitorId, visitorProperties = {}, locationProperties, pageUrl, campaign } =
+    body;
 
   let sdk;
   try {

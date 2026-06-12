@@ -11,23 +11,50 @@ import {
   resolveClient,
   serializeFeature,
 } from './convert-route-utils';
-import type { BucketingBody } from './convert-route-utils';
+import type {
+  GetFeatureByIdRequest,
+  GetFeatureByKeyRequest,
+  ListFeaturesRequest,
+  RunFeatureByIdRequest,
+  RunFeatureRequest,
+  RunFeaturesRequest,
+} from '../contracts';
+import {
+  featureIdParamsSchema,
+  featureKeyParamsSchema,
+  parseRequest,
+  projectQuerySchema,
+  runFeatureByIdSchema,
+  runFeatureSchema,
+  sharedBucketingSchema,
+} from './schemas';
 
 const log = createLogger('features');
 const router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
-  const sdk = await resolveClient(req.query.projectKey as string | undefined, res);
+  const query = parseRequest<ListFeaturesRequest>(projectQuerySchema, req.query, res);
+  if (!query) return;
+
+  const sdk = await resolveClient(query.projectKey, res);
   if (!sdk) return;
 
   return res.json({ features: getFeatures(sdk) });
 });
 
 router.get('/by-id/:featureId', async (req: Request, res: Response) => {
-  const sdk = await resolveClient(req.query.projectKey as string | undefined, res);
+  const query = parseRequest<Pick<GetFeatureByIdRequest, 'projectKey'>>(projectQuerySchema, req.query, res);
+  const params = parseRequest<Pick<GetFeatureByIdRequest, 'featureId'>>(
+    featureIdParamsSchema,
+    req.params,
+    res,
+  );
+  if (!query || !params) return;
+
+  const sdk = await resolveClient(query.projectKey, res);
   if (!sdk) return;
 
-  const feature = findFeatureById(sdk, req.params.featureId);
+  const feature = findFeatureById(sdk, params.featureId);
   if (!feature) {
     return res.status(404).json({ error: 'Feature not found' });
   }
@@ -36,10 +63,18 @@ router.get('/by-id/:featureId', async (req: Request, res: Response) => {
 });
 
 router.get('/:featureKey', async (req: Request, res: Response) => {
-  const sdk = await resolveClient(req.query.projectKey as string | undefined, res);
+  const query = parseRequest<Pick<GetFeatureByKeyRequest, 'projectKey'>>(projectQuerySchema, req.query, res);
+  const params = parseRequest<Pick<GetFeatureByKeyRequest, 'featureKey'>>(
+    featureKeyParamsSchema,
+    req.params,
+    res,
+  );
+  if (!query || !params) return;
+
+  const sdk = await resolveClient(query.projectKey, res);
   if (!sdk) return;
 
-  const feature = findFeatureByKey(sdk, req.params.featureKey);
+  const feature = findFeatureByKey(sdk, params.featureKey);
   if (!feature) {
     return res.status(404).json({ error: 'Feature not found' });
   }
@@ -48,11 +83,8 @@ router.get('/:featureKey', async (req: Request, res: Response) => {
 });
 
 router.post('/run-all', async (req: Request, res: Response) => {
-  const body = req.body as BucketingBody;
-
-  if (!body.projectKey || !body.visitorId) {
-    return res.status(400).json({ error: 'projectKey and visitorId are required' });
-  }
+  const body = parseRequest<RunFeaturesRequest>(sharedBucketingSchema, req.body, res);
+  if (!body) return;
 
   const sdk = await resolveClient(body.projectKey, res);
   if (!sdk) return;
@@ -73,11 +105,8 @@ router.post('/run-all', async (req: Request, res: Response) => {
 });
 
 router.post('/run', async (req: Request, res: Response) => {
-  const body = req.body as BucketingBody & { featureKey?: string };
-
-  if (!body.projectKey || !body.visitorId || !body.featureKey) {
-    return res.status(400).json({ error: 'projectKey, visitorId and featureKey are required' });
-  }
+  const body = parseRequest<RunFeatureRequest>(runFeatureSchema, req.body, res);
+  if (!body) return;
 
   const sdk = await resolveClient(body.projectKey, res);
   if (!sdk) return;
@@ -109,11 +138,8 @@ router.post('/run', async (req: Request, res: Response) => {
 });
 
 router.post('/run-by-id', async (req: Request, res: Response) => {
-  const body = req.body as BucketingBody & { featureId?: string };
-
-  if (!body.projectKey || !body.visitorId || !body.featureId) {
-    return res.status(400).json({ error: 'projectKey, visitorId and featureId are required' });
-  }
+  const body = parseRequest<RunFeatureByIdRequest>(runFeatureByIdSchema, req.body, res);
+  if (!body) return;
 
   const sdk = await resolveClient(body.projectKey, res);
   if (!sdk) return;

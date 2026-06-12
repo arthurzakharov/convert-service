@@ -4,16 +4,16 @@ import { getClient } from '@convert/client';
 import type { ProjectKey } from '@convert/client';
 import { createLogger } from '@utils/logger';
 import type { TrackConversionRequest, TrackConversionResponse } from '../contracts';
+import { parseRequest, trackConversionSchema } from './schemas';
 
 const log = createLogger('track');
 const router = Router();
 
 router.post('/', async (req: Request, res: Response) => {
-  const { projectKey, visitorId, goalKey, attributes } = req.body as Partial<TrackConversionRequest>;
+  const body = parseRequest<TrackConversionRequest>(trackConversionSchema, req.body, res);
+  if (!body) return;
 
-  if (!projectKey || !visitorId || !goalKey) {
-    return res.status(400).json({ error: 'projectKey, visitorId and goalKey are required' });
-  }
+  const { projectKey, visitorId, goalKey, attributes } = body;
 
   let sdk;
   try {

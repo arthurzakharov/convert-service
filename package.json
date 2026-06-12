@@ -44,7 +44,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "geoip-lite": "^2.0.2",
-    "ua-parser-js": "^2.0.10"
+    "ua-parser-js": "^2.0.10",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

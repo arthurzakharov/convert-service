@@ -13,23 +13,52 @@ import {
   resolveClient,
   serializeVariation,
 } from './convert-route-utils';
-import type { BucketingBody } from './convert-route-utils';
+import type {
+  GetExperienceByIdRequest,
+  GetExperienceByKeyRequest,
+  GetVariationByIdRequest,
+  GetVariationByKeyRequest,
+  ListExperiencesRequest,
+  RunExperienceByIdRequest,
+  RunExperienceRequest,
+} from '../contracts';
+import {
+  experienceIdParamsSchema,
+  experienceKeyParamsSchema,
+  parseRequest,
+  projectQuerySchema,
+  runExperienceByIdSchema,
+  runExperienceSchema,
+  variationIdParamsSchema,
+  variationKeyParamsSchema,
+} from './schemas';
 
 const log = createLogger('experiences');
 const router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
-  const sdk = await resolveClient(req.query.projectKey as string | undefined, res);
+  const query = parseRequest<ListExperiencesRequest>(projectQuerySchema, req.query, res);
+  if (!query) return;
+
+  const sdk = await resolveClient(query.projectKey, res);
   if (!sdk) return;
 
   return res.json({ experiences: getExperiences(sdk) });
 });
 
 router.get('/by-id/:experienceId', async (req: Request, res: Response) => {
-  const sdk = await resolveClient(req.query.projectKey as string | undefined, res);
+  const query = parseRequest<Pick<GetExperienceByIdRequest, 'projectKey'>>(projectQuerySchema, req.query, res);
+  const params = parseRequest<Pick<GetExperienceByIdRequest, 'experienceId'>>(
+    experienceIdParamsSchema,
+    req.params,
+    res,
+  );
+  if (!query || !params) return;
+
+  const sdk = await resolveClient(query.projectKey, res);
   if (!sdk) return;
 
-  const experience = findExperienceById(sdk, req.params.experienceId);
+  const experience = findExperienceById(sdk, params.experienceId);
   if (!experience) {
     return res.status(404).json({ error: 'Experience not found' });
   }
@@ -38,10 +67,18 @@ router.get('/by-id/:experienceId', async (req: Request, res: Response) => {
 });
 
 router.get('/:experienceKey', async (req: Request, res: Response) => {
-  const sdk = await resolveClient(req.query.projectKey as string | undefined, res);
+  const query = parseRequest<Pick<GetExperienceByKeyRequest, 'projectKey'>>(projectQuerySchema, req.query, res);
+  const params = parseRequest<Pick<GetExperienceByKeyRequest, 'experienceKey'>>(
+    experienceKeyParamsSchema,
+    req.params,
+    res,
+  );
+  if (!query || !params) return;
+
+  const sdk = await resolveClient(query.projectKey, res);
   if (!sdk) return;
 
-  const experience = findExperienceByKey(sdk, req.params.experienceKey);
+  const experience = findExperienceByKey(sdk, params.experienceKey);
   if (!experience) {
     return res.status(404).json({ error: 'Experience not found' });
   }
@@ -50,11 +87,19 @@ router.get('/:experienceKey', async (req: Request, res: Response) => {
 });
 
 router.get('/:experienceKey/variations/:variationKey', async (req: Request, res: Response) => {
-  const sdk = await resolveClient(req.query.projectKey as string | undefined, res);
+  const query = parseRequest<Pick<GetVariationByKeyRequest, 'projectKey'>>(projectQuerySchema, req.query, res);
+  const params = parseRequest<Omit<GetVariationByKeyRequest, 'projectKey'>>(
+    variationKeyParamsSchema,
+    req.params,
+    res,
+  );
+  if (!query || !params) return;
+
+  const sdk = await resolveClient(query.projectKey, res);
   if (!sdk) return;
 
-  const experience = findExperienceByKey(sdk, req.params.experienceKey);
-  const variation = experience ? findVariationByKey(experience, req.params.variationKey) : undefined;
+  const experience = findExperienceByKey(sdk, params.experienceKey);
+  const variation = experience ? findVariationByKey(experience, params.variationKey) : undefined;
   if (!variation) {
     return res.status(404).json({ error: 'Variation not found' });
   }
@@ -63,11 +108,19 @@ router.get('/:experienceKey/variations/:variationKey', async (req: Request, res:
 });
 
 router.get('/by-id/:experienceId/variations/:variationId', async (req: Request, res: Response) => {
-  const sdk = await resolveClient(req.query.projectKey as string | undefined, res);
+  const query = parseRequest<Pick<GetVariationByIdRequest, 'projectKey'>>(projectQuerySchema, req.query, res);
+  const params = parseRequest<Omit<GetVariationByIdRequest, 'projectKey'>>(
+    variationIdParamsSchema,
+    req.params,
+    res,
+  );
+  if (!query || !params) return;
+
+  const sdk = await resolveClient(query.projectKey, res);
   if (!sdk) return;
 
-  const experience = findExperienceById(sdk, req.params.experienceId);
-  const variation = experience ? findVariationById(experience, req.params.variationId) : undefined;
+  const experience = findExperienceById(sdk, params.experienceId);
+  const variation = experience ? findVariationById(experience, params.variationId) : undefined;
   if (!variation) {
     return res.status(404).json({ error: 'Variation not found' });
   }
@@ -76,11 +129,8 @@ router.get('/by-id/:experienceId/variations/:variationId', async (req: Request, 
 });
 
 router.post('/run', async (req: Request, res: Response) => {
-  const body = req.body as BucketingBody & { experienceKey?: string };
-
-  if (!body.projectKey || !body.visitorId || !body.experienceKey) {
-    return res.status(400).json({ error: 'projectKey, visitorId and experienceKey are required' });
-  }
+  const body = parseRequest<RunExperienceRequest>(runExperienceSchema, req.body, res);
+  if (!body) return;
 
   const sdk = await resolveClient(body.projectKey, res);
   if (!sdk) return;
@@ -108,11 +158,8 @@ router.post('/run', async (req: Request, res: Response) => {
 });
 
 router.post('/run-by-id', async (req: Request, res: Response) => {
-  const body = req.body as BucketingBody & { experienceId?: string };
-
-  if (!body.projectKey || !body.visitorId || !body.experienceId) {
-    return res.status(400).json({ error: 'projectKey, visitorId and experienceId are required' });
-  }
+  const body = parseRequest<RunExperienceByIdRequest>(runExperienceByIdSchema, req.body, res);
+  if (!body) return;
 
   const sdk = await resolveClient(body.projectKey, res);
   if (!sdk) return;
