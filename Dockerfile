@@ -17,7 +17,11 @@ FROM node:24-alpine AS runner
 
 WORKDIR /app
 
+# Generic build-time commit hash — passed by Railway via railway.toml buildArgs
+# or by any other CI via --build-arg COMMIT_SHA=<sha>
+ARG COMMIT_SHA=dev
 ENV NODE_ENV=production
+ENV COMMIT_SHA=$COMMIT_SHA
 
 # Install production dependencies only
 COPY package.json package-lock.json ./
