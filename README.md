@@ -354,24 +354,28 @@ convert.setVisitorId(currentUser.id);
 
 Available helper methods:
 
-| Method | Service endpoint |
+| Method | HTTP method/path |
 |---|---|
-| `health()` | `GET /health` |
-| `bucket()` | `POST /bucket` |
-| `listExperiences()` | `GET /experiences` |
-| `getExperienceByKey()` | `GET /experiences/:experienceKey` |
-| `getExperienceById()` | `GET /experiences/by-id/:experienceId` |
-| `getVariationByKey()` | `GET /experiences/:experienceKey/variations/:variationKey` |
-| `getVariationById()` | `GET /experiences/by-id/:experienceId/variations/:variationId` |
-| `runExperience()` | `POST /experiences/run` |
-| `runExperienceById()` | `POST /experiences/run-by-id` |
-| `listFeatures()` | `GET /features` |
-| `getFeatureByKey()` | `GET /features/:featureKey` |
-| `getFeatureById()` | `GET /features/by-id/:featureId` |
-| `runFeatures()` | `POST /features/run-all` |
-| `runFeature()` | `POST /features/run` |
-| `runFeatureById()` | `POST /features/run-by-id` |
-| `trackConversion()` | `POST /track` |
+| `health() => Promise<HealthResponse>` | `GET /health` |
+| `bucket(request?: PartialProjectVisitor<BucketRequest>) => Promise<BucketResponse>` | `POST /bucket` |
+| `listExperiences(request?: Partial<ListExperiencesRequest>) => Promise<ListExperiencesResponse>` | `GET /experiences` |
+| `getExperienceByKey(request: PartialProject<GetExperienceByKeyRequest>) => Promise<GetExperienceResponse>` | `GET /experiences/:experienceKey` |
+| `getExperienceById(request: PartialProject<GetExperienceByIdRequest>) => Promise<GetExperienceResponse>` | `GET /experiences/by-id/:experienceId` |
+| `getVariationByKey(request: PartialProject<GetVariationByKeyRequest>) => Promise<GetVariationResponse>` | `GET /experiences/:experienceKey/variations/:variationKey` |
+| `getVariationById(request: PartialProject<GetVariationByIdRequest>) => Promise<GetVariationResponse>` | `GET /experiences/by-id/:experienceId/variations/:variationId` |
+| `runExperience(request: PartialProjectVisitor<RunExperienceRequest>) => Promise<RunExperienceResponse>` | `POST /experiences/run` |
+| `runExperienceById(request: PartialProjectVisitor<RunExperienceByIdRequest>) => Promise<RunExperienceResponse>` | `POST /experiences/run-by-id` |
+| `listFeatures(request?: Partial<ListFeaturesRequest>) => Promise<ListFeaturesResponse>` | `GET /features` |
+| `getFeatureByKey(request: PartialProject<GetFeatureByKeyRequest>) => Promise<GetFeatureResponse>` | `GET /features/:featureKey` |
+| `getFeatureById(request: PartialProject<GetFeatureByIdRequest>) => Promise<GetFeatureResponse>` | `GET /features/by-id/:featureId` |
+| `runFeatures(request?: PartialProjectVisitor<RunFeaturesRequest>) => Promise<RunFeaturesResponse>` | `POST /features/run-all` |
+| `runFeature(request: PartialProjectVisitor<RunFeatureRequest>) => Promise<RunFeatureResponse>` | `POST /features/run` |
+| `runFeatureById(request: PartialProjectVisitor<RunFeatureByIdRequest>) => Promise<RunFeatureResponse>` | `POST /features/run-by-id` |
+| `trackConversion(request: PartialProjectVisitor<TrackConversionRequest>) => Promise<TrackConversionResponse>` | `POST /track` |
+
+For helper methods, `projectKey` defaults to the client-level `projectKey`, and `visitorId` defaults to the cookie-managed visitor ID when the endpoint needs one.
+
+In the table, `PartialProject<T>` means `projectKey` can be omitted, and `PartialProjectVisitor<T>` means both `projectKey` and `visitorId` can be omitted because the helper supplies them.
 
 Endpoint contracts are exported from `convert-service/contracts`:
 
