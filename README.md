@@ -417,13 +417,22 @@ The service deploys to [Railway](https://railway.app) automatically via GitHub A
 **Flow:**
 
 - Push to any branch / open a PR → CI runs (typecheck + build)
-- Merge to `main` → auto-deploys to Railway
+- Merge to `main` without a deploy tag → CI runs, Railway deploy is skipped
+- Merge to `main` with `[deploy]` or `[railway-deploy]` in the commit message → deploys to Railway
+- Run the GitHub Actions workflow manually → deploys to Railway
 
 **One-time setup:**
 
 1. Create a Railway project and link it to this repo
 2. Set all env variables in the Railway dashboard
 3. Add `RAILWAY_TOKEN` to GitHub repo → Settings → Secrets and variables → Actions
+
+**Deploy commit examples:**
+
+```bash
+git commit -m "Release convert client [deploy]"
+git commit -m "Redeploy Railway service [railway-deploy]"
+```
 
 ## Tech stack
 
