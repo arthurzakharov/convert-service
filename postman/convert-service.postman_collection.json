@@ -1,0 +1,579 @@
+{
+  "info": {
+    "_postman_id": "6d4427c5-e5b0-44a9-a7c4-6815c2e7d77c",
+    "name": "Convert Service API",
+    "description": "Manual test collection for the Convert FullStack proxy service. Update collection variables after import: baseUrl, projectKey, visitorId, experienceKey, experienceId, variationKey, variationId, featureKey, featureId, and goalKey.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3100",
+      "type": "string"
+    },
+    {
+      "key": "projectKey",
+      "value": "passexperten",
+      "type": "string"
+    },
+    {
+      "key": "visitorId",
+      "value": "postman-visitor-001",
+      "type": "string"
+    },
+    {
+      "key": "experienceKey",
+      "value": "headline-test",
+      "type": "string"
+    },
+    {
+      "key": "experienceId",
+      "value": "100001",
+      "type": "string"
+    },
+    {
+      "key": "variationKey",
+      "value": "variation-a",
+      "type": "string"
+    },
+    {
+      "key": "variationId",
+      "value": "200001",
+      "type": "string"
+    },
+    {
+      "key": "featureKey",
+      "value": "checkout-flow",
+      "type": "string"
+    },
+    {
+      "key": "featureId",
+      "value": "300001",
+      "type": "string"
+    },
+    {
+      "key": "goalKey",
+      "value": "purchase",
+      "type": "string"
+    },
+    {
+      "key": "pageUrl",
+      "value": "https://www.example.com/",
+      "type": "string"
+    },
+    {
+      "key": "campaign",
+      "value": "postman",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('response is JSON', function () {",
+          "  pm.response.to.have.header('Content-Type');",
+          "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('service is ok', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.equal('ok');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bucketing",
+      "item": [
+        {
+          "name": "POST /bucket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectKey\": \"{{projectKey}}\",\n  \"visitorId\": \"{{visitorId}}\",\n  \"visitorProperties\": {\n    \"country\": \"DE\",\n    \"source\": \"postman\"\n  },\n  \"locationProperties\": {\n    \"url\": \"{{pageUrl}}\"\n  },\n  \"pageUrl\": \"{{pageUrl}}\",\n  \"campaign\": \"{{campaign}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bucket",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bucket"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('has variations array', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.visitorId).to.equal(pm.collectionVariables.get('visitorId'));",
+                  "  pm.expect(body.variations).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Experiences",
+      "item": [
+        {
+          "name": "GET /experiences",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/experiences?projectKey={{projectKey}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "experiences"
+              ],
+              "query": [
+                {
+                  "key": "projectKey",
+                  "value": "{{projectKey}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /experiences/:experienceKey",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/experiences/{{experienceKey}}?projectKey={{projectKey}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "experiences",
+                "{{experienceKey}}"
+              ],
+              "query": [
+                {
+                  "key": "projectKey",
+                  "value": "{{projectKey}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /experiences/by-id/:experienceId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/experiences/by-id/{{experienceId}}?projectKey={{projectKey}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "experiences",
+                "by-id",
+                "{{experienceId}}"
+              ],
+              "query": [
+                {
+                  "key": "projectKey",
+                  "value": "{{projectKey}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /experiences/:experienceKey/variations/:variationKey",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/experiences/{{experienceKey}}/variations/{{variationKey}}?projectKey={{projectKey}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "experiences",
+                "{{experienceKey}}",
+                "variations",
+                "{{variationKey}}"
+              ],
+              "query": [
+                {
+                  "key": "projectKey",
+                  "value": "{{projectKey}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /experiences/by-id/:experienceId/variations/:variationId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/experiences/by-id/{{experienceId}}/variations/{{variationId}}?projectKey={{projectKey}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "experiences",
+                "by-id",
+                "{{experienceId}}",
+                "variations",
+                "{{variationId}}"
+              ],
+              "query": [
+                {
+                  "key": "projectKey",
+                  "value": "{{projectKey}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /experiences/run",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectKey\": \"{{projectKey}}\",\n  \"visitorId\": \"{{visitorId}}\",\n  \"experienceKey\": \"{{experienceKey}}\",\n  \"visitorProperties\": {\n    \"country\": \"DE\"\n  },\n  \"locationProperties\": {\n    \"url\": \"{{pageUrl}}\"\n  },\n  \"pageUrl\": \"{{pageUrl}}\",\n  \"campaign\": \"{{campaign}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/experiences/run",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "experiences",
+                "run"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /experiences/run-by-id",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectKey\": \"{{projectKey}}\",\n  \"visitorId\": \"{{visitorId}}\",\n  \"experienceId\": \"{{experienceId}}\",\n  \"visitorProperties\": {\n    \"country\": \"DE\"\n  },\n  \"locationProperties\": {\n    \"url\": \"{{pageUrl}}\"\n  },\n  \"pageUrl\": \"{{pageUrl}}\",\n  \"campaign\": \"{{campaign}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/experiences/run-by-id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "experiences",
+                "run-by-id"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Features",
+      "item": [
+        {
+          "name": "GET /features",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/features?projectKey={{projectKey}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "features"
+              ],
+              "query": [
+                {
+                  "key": "projectKey",
+                  "value": "{{projectKey}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /features/:featureKey",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/features/{{featureKey}}?projectKey={{projectKey}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "features",
+                "{{featureKey}}"
+              ],
+              "query": [
+                {
+                  "key": "projectKey",
+                  "value": "{{projectKey}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /features/by-id/:featureId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/features/by-id/{{featureId}}?projectKey={{projectKey}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "features",
+                "by-id",
+                "{{featureId}}"
+              ],
+              "query": [
+                {
+                  "key": "projectKey",
+                  "value": "{{projectKey}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /features/run-all",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectKey\": \"{{projectKey}}\",\n  \"visitorId\": \"{{visitorId}}\",\n  \"visitorProperties\": {\n    \"country\": \"DE\"\n  },\n  \"locationProperties\": {\n    \"url\": \"{{pageUrl}}\"\n  },\n  \"pageUrl\": \"{{pageUrl}}\",\n  \"campaign\": \"{{campaign}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/features/run-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "features",
+                "run-all"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /features/run",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectKey\": \"{{projectKey}}\",\n  \"visitorId\": \"{{visitorId}}\",\n  \"featureKey\": \"{{featureKey}}\",\n  \"visitorProperties\": {\n    \"country\": \"DE\"\n  },\n  \"experienceKeys\": [\"{{experienceKey}}\"],\n  \"pageUrl\": \"{{pageUrl}}\",\n  \"campaign\": \"{{campaign}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/features/run",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "features",
+                "run"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /features/run-by-id",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectKey\": \"{{projectKey}}\",\n  \"visitorId\": \"{{visitorId}}\",\n  \"featureId\": \"{{featureId}}\",\n  \"visitorProperties\": {\n    \"country\": \"DE\"\n  },\n  \"experienceKeys\": [\"{{experienceKey}}\"],\n  \"pageUrl\": \"{{pageUrl}}\",\n  \"campaign\": \"{{campaign}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/features/run-by-id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "features",
+                "run-by-id"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tracking",
+      "item": [
+        {
+          "name": "POST /track",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectKey\": \"{{projectKey}}\",\n  \"visitorId\": \"{{visitorId}}\",\n  \"goalKey\": \"{{goalKey}}\",\n  \"attributes\": {\n    \"conversionData\": [\n      {\n        \"key\": \"amount\",\n        \"value\": 49.99\n      },\n      {\n        \"key\": \"transactionId\",\n        \"value\": \"postman-order-001\"\n      }\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/track",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "track"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validation examples",
+      "item": [
+        {
+          "name": "POST /bucket - invalid request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectKey\": \"{{projectKey}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bucket",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bucket"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('has validation issues', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error).to.equal('Invalid request');",
+                  "  pm.expect(body.issues).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

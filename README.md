@@ -313,6 +313,22 @@ npm install
 npm run dev        # ts-node-dev with hot reload on port 3100
 ```
 
+## Postman
+
+Import [postman/convert-service.postman_collection.json](/Users/arthurzakharov/Code/Work/convert-service/postman/convert-service.postman_collection.json) into Postman to test the API manually.
+
+After import, update the collection variables:
+
+| Variable | Default | Description |
+|---|---|---|
+| `baseUrl` | `http://localhost:3100` | Local or deployed service URL |
+| `projectKey` | `passexperten` | Convert service project key |
+| `visitorId` | `postman-visitor-001` | Stable visitor ID used in POST examples |
+| `experienceKey` / `experienceId` | sample values | Replace with real Convert experience identifiers |
+| `variationKey` / `variationId` | sample values | Replace with real Convert variation identifiers |
+| `featureKey` / `featureId` | sample values | Replace with real Convert feature identifiers |
+| `goalKey` | `purchase` | Replace with a real Convert goal key |
+
 ## Frontend npm helper
 
 This package also exposes a browser-safe helper for frontend applications. Import it from the `client` subpath so the frontend bundle does not import the Express service entrypoint:
